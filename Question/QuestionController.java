@@ -1,4 +1,4 @@
-package harelchuk.maxim.throneserver;
+package harelchuk.maxim.throneserver.Question;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,22 +23,23 @@ public class QuestionController {
         return questionRepository.findAll();
     }
 
-    @GetMapping(path = "/ru/level/{level}/{in_book}/{in_serial}")
+    @GetMapping(path = "/ru/difficulty/{difficulty}/{in_book}/{in_serial}")
     public @ResponseBody
-    List<Question> getLevelQuestions(@PathVariable("level") int level,
-                                     @PathVariable("in_book") boolean in_book,
-                                     @PathVariable("in_serial") boolean in_serial) {
+    List<Question> getDifficultyQuestions(@PathVariable("difficulty") int difficulty,
+                                          @PathVariable("in_book") boolean in_book,
+                                          @PathVariable("in_serial") boolean in_serial) {
         if (in_book && in_serial) {
-            return getSevenQuestions(questionRepository.findByLevel(level));
+            return getSevenQuestions(questionRepository.findManyByDifficulty(difficulty));
         } else {
             if (in_book) {
-                return getSevenQuestions(questionRepository.findByLevelBook(level, true));
+                return getSevenQuestions(questionRepository.findManyByDifficultyBook(difficulty, true));
             } else {
-                return getSevenQuestions(questionRepository.findByLevelSerial(level, true));
+                return getSevenQuestions(questionRepository.findManyByDifficultySerial(difficulty, true));
             }
         }
     }
 
+/*
     @GetMapping(path = "/ru/category/{category}/{in_book}/{in_serial}")
     public @ResponseBody
     List<Question> getCategoryQuestions(@PathVariable("category") int category,
@@ -54,6 +55,7 @@ public class QuestionController {
             }
         }
     }
+*/
 
     private List<Question> getSevenQuestions(ArrayList<Integer> selectedQuestionsID) {
         int[] ids = new int[7];
@@ -65,6 +67,6 @@ public class QuestionController {
                 selectedQuestionsID.remove(randomIndex);
             }
         }
-        return questionRepository.findSevenByID(ids[0], ids[1], ids[2], ids[3], ids[4], ids[5], ids[6]);
+        return questionRepository.findByIdQuestionIn(ids);
     }
 }

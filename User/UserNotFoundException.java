@@ -1,4 +1,4 @@
-package harelchuk.maxim.throneserver;
+package harelchuk.maxim.throneserver.User;
 
 public class UserNotFoundException extends RuntimeException {
     UserNotFoundException(int id) {
