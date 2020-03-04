@@ -17,47 +17,41 @@ public class QuestionController {
         this.questionRepository = questionRepository;
     }
 
-    @GetMapping(path = "/all")
+/*    @GetMapping(path = "/all")
     public @ResponseBody
     Iterable<Question> getAllQuestions() {
         return questionRepository.findAll();
-    }
+    }*/
 
-    @GetMapping(path = "/ru/difficulty/{difficulty}/{in_book}/{in_serial}")
+    @GetMapping(path = "/difficulty/{difficulty}/{in_book}/{in_serial}/{is_russian}")
     public @ResponseBody
-    List<Question> getDifficultyQuestions(@PathVariable("difficulty") int difficulty,
-                                          @PathVariable("in_book") boolean in_book,
-                                          @PathVariable("in_serial") boolean in_serial) {
+    List<LocaledQuestion> getDifficultyQuestions(@PathVariable("difficulty") int difficulty,
+                                                 @PathVariable("in_book") boolean in_book,
+                                                 @PathVariable("in_serial") boolean in_serial,
+                                                 @PathVariable("is_russian") boolean is_russian) {
         if (in_book && in_serial) {
-            return getSevenQuestions(questionRepository.findManyByDifficulty(difficulty));
+            return getSevenQuestions(questionRepository.findManyByDifficulty(difficulty), is_russian);
         } else {
             if (in_book) {
-                return getSevenQuestions(questionRepository.findManyByDifficultyBook(difficulty, true));
+                return getSevenQuestions(questionRepository.findManyByDifficultyBook(difficulty, true), is_russian);
             } else {
-                return getSevenQuestions(questionRepository.findManyByDifficultySerial(difficulty, true));
+                return getSevenQuestions(questionRepository.findManyByDifficultySerial(difficulty, true), is_russian);
             }
         }
     }
 
-/*
-    @GetMapping(path = "/ru/category/{category}/{in_book}/{in_serial}")
-    public @ResponseBody
-    List<Question> getCategoryQuestions(@PathVariable("category") int category,
-                                        @PathVariable("in_book") boolean in_book,
-                                        @PathVariable("in_serial") boolean in_serial) {
-        if (in_book && in_serial) {
-            return getSevenQuestions(questionRepository.findByCategory(category));
-        } else {
-            if (in_book) {
-                return getSevenQuestions(questionRepository.findByCategoryBook(category, true));
-            } else {
-                return getSevenQuestions(questionRepository.findByCategorySerial(category, true));
+    public static void getSevenQuestionIds(ArrayList<Integer> selectedQuestionsID, int[] ids, Random rand) {
+        for (int i = 0; i < 7; i++) {
+            int randomIndex;
+            randomIndex = rand.nextInt(selectedQuestionsID.size());
+            ids[i] = selectedQuestionsID.get(randomIndex);
+            if (selectedQuestionsID.size() > 1) {
+                selectedQuestionsID.remove(randomIndex);
             }
         }
     }
-*/
 
-    private List<Question> getSevenQuestions(ArrayList<Integer> selectedQuestionsID) {
+    private List<LocaledQuestion> getSevenQuestions(ArrayList<Integer> selectedQuestionsID, boolean isRussian) {
         int[] ids = new int[7];
         Random rand = new Random();
         for (int i = 0; i < 7; i++) {
@@ -67,6 +61,45 @@ public class QuestionController {
                 selectedQuestionsID.remove(randomIndex);
             }
         }
-        return questionRepository.findByIdQuestionIn(ids);
+        List<Question> questions = questionRepository.findAllByIdIn(ids);
+        ArrayList<LocaledQuestion> localedQuestions = new ArrayList<>();
+        switchLocale(questions, isRussian, localedQuestions);
+        return localedQuestions;
+    }
+
+    public static void switchLocale(List<Question> questions, boolean isRussian, ArrayList<LocaledQuestion> localedQuestions) {
+        if (isRussian) {
+            for (Question question : questions) {
+                LocaledQuestion localedQuestion = new LocaledQuestion(question.getId(),
+                        question.getQuestionRu(),
+                        question.getAnswer1Ru(),
+                        question.getAnswer2Ru(),
+                        question.getAnswer3Ru(),
+                        question.getAnswer4Ru(),
+                        question.getRightAnswer(),
+                        question.getLevel(),
+                        question.getDifficulty(),
+                        question.isInBook(),
+                        question.isInSerial(),
+                        question.getCategory());
+                localedQuestions.add(localedQuestion);
+            }
+        } else {
+            for (Question question : questions) {
+                LocaledQuestion localedQuestion = new LocaledQuestion(question.getId(),
+                        question.getQuestionEn(),
+                        question.getAnswer1En(),
+                        question.getAnswer2En(),
+                        question.getAnswer3En(),
+                        question.getAnswer4En(),
+                        question.getRightAnswer(),
+                        question.getLevel(),
+                        question.getDifficulty(),
+                        question.isInBook(),
+                        question.isInSerial(),
+                        question.getCategory());
+                localedQuestions.add(localedQuestion);
+            }
+        }
     }
 }

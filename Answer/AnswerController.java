@@ -23,26 +23,27 @@ public class AnswerController {
                 .orElseThrow(() -> new AnswerNotFoundException(id_answer));
     }
 
-    @PutMapping("update/seven/{id_answers}/{user_answers}")
-    public void updateAnswer(@PathVariable int[] id_answers,
+    @GetMapping("/update/seven/{id_answers}/{user_answers}")
+    public boolean updateAnswer(@PathVariable int[] id_answers,
                              @PathVariable int[] user_answers) {
         List<Answer> answers = answerRepository.findAnswersByIdAnswerIn(id_answers);
-        for (int id_answer : id_answers) {
-            switch (user_answers[id_answer]) {
+        for (int i = 0; i < id_answers.length; i++) {
+            switch (user_answers[i]) {
                 case 1:
-                    answers.get(id_answer).incrementOne();
+                    answers.get(i).incrementOne();
                     break;
                 case 2:
-                    answers.get(id_answer).incrementTwo();
+                    answers.get(i).incrementTwo();
                     break;
                 case 3:
-                    answers.get(id_answer).incrementThree();
+                    answers.get(i).incrementThree();
                     break;
                 case 4:
-                    answers.get(id_answer).incrementFour();
+                    answers.get(i).incrementFour();
                     break;
             }
         }
         answerRepository.saveAll(answers);
+        return true;
     }
 }

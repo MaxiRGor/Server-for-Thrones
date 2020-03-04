@@ -7,12 +7,13 @@ import java.util.ArrayList;
 
 @Repository
 public interface GameVariablesRepository extends JpaRepository<GameVariables, Integer> {
-    //ArrayList<GameVariables> findAll();
-    ArrayList<GameVariables> findAllBySingleDifficultyRewardsNotAndSingleDifficultyCostsNot(int zero1, int zero2);
 
-    ArrayList<GameVariables> findAllByThemeCostsNot(int zero);
+    ArrayList<GameVariables> findAllByMultiRatingCostNot(int zero);
 
-    ArrayList<GameVariables> findAllByMultiRatingMinNotAndMultiRatingRewardsNot(int zero1, int zero2);
+    ArrayList<GameVariables> findAllByMultiRatingMinNot(int zero);
 
     ArrayList<GameVariables> findAllByIconsCostsNot(int zero);
+
+    GameVariables findDistinctById(int firstRow);
+
 }

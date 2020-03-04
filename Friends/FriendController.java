@@ -2,6 +2,8 @@ package harelchuk.maxim.throneserver.Friends;
 
 import harelchuk.maxim.throneserver.User.User;
 import harelchuk.maxim.throneserver.User.UserRepository;
+import harelchuk.maxim.throneserver.User.UsersMultiRating;
+import harelchuk.maxim.throneserver.User.UsersMultiRatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,14 +20,17 @@ public class FriendController {
     private UserRepository userRepository;
     private UnconfirmedRepository unconfirmedRepository;
     private ConfirmedRepository confirmedRepository;
+    private UsersMultiRatingRepository usersMultiRatingRepository;
 
     @Autowired
     FriendController(UserRepository userRepository,
                      UnconfirmedRepository unconfirmedRepository,
-                     ConfirmedRepository confirmedRepository) {
+                     ConfirmedRepository confirmedRepository,
+                     UsersMultiRatingRepository usersMultiRatingRepository) {
         this.userRepository = userRepository;
         this.unconfirmedRepository = unconfirmedRepository;
         this.confirmedRepository = confirmedRepository;
+        this.usersMultiRatingRepository = usersMultiRatingRepository;
     }
 
     @GetMapping("/find/{uuid}/{unique}")      //now - everybody but not himself
@@ -35,11 +40,13 @@ public class FriendController {
         ArrayList<Friend> newFriends = new ArrayList<>();
         ArrayList<User> usersFound = userRepository.findAllByUniqueNumberAndIdNot(unique, myId);
         int limit = usersFound.size();
-        if (usersFound.size() > 10) limit = 10;
+        if (usersFound.size() > 5) limit = 5;
         for (int i = 0; i < limit; i++) {
-            Friend friend = new Friend(usersFound.get(i).getId(), 0, usersFound.get(i).getName(), usersFound.get(i).getMoney(),
+            UsersMultiRating usersMultiRating = usersMultiRatingRepository.findDistinctByIdUser(usersFound.get(i).getId());
+            Friend friend = new Friend(usersFound.get(i).getId(), usersFound.get(i).getCurrentIcon(), usersFound.get(i).getName(), usersFound.get(i).getMoney(),
                     usersFound.get(i).getEasyGames(), usersFound.get(i).getEasyWinnings(), usersFound.get(i).getMediumGames(), usersFound.get(i).getMediumWinnings(),
-                    usersFound.get(i).getHardGames(), usersFound.get(i).getHardWinnings());
+                    usersFound.get(i).getHardGames(), usersFound.get(i).getHardWinnings(),
+                    usersMultiRating.getRank(), usersMultiRating.getCrystals(), usersMultiRating.getGames(), usersMultiRating.getWinnings());
             newFriends.add(friend);
         }
         return newFriends;
@@ -76,9 +83,11 @@ public class FriendController {
             for (FriendUnconfirmed friendsUnconfirmed : friendUnconfirmeds) {
                 int idSecond = friendsUnconfirmed.getIdFrom();
                 User user = userRepository.getById(idSecond);
-                Friend friend = new Friend(idSecond, 0, user.getName(), user.getMoney(),
+                UsersMultiRating usersMultiRating = usersMultiRatingRepository.findDistinctByIdUser(idSecond);
+                Friend friend = new Friend(idSecond, user.getCurrentIcon(), user.getName(), user.getMoney(),
                         user.getEasyGames(), user.getEasyWinnings(), user.getMediumGames(), user.getMediumWinnings(),
-                        user.getHardGames(), user.getHardWinnings());
+                        user.getHardGames(), user.getHardWinnings(),
+                        usersMultiRating.getRank(), usersMultiRating.getCrystals(), usersMultiRating.getGames(), usersMultiRating.getWinnings());
                 friends.add(friend);
             }
         }
@@ -110,9 +119,11 @@ public class FriendController {
                 int idFriend = friendConfirmed.getIdFirst();
                 if (idFriend == myId) idFriend = friendConfirmed.getIdSecond();
                 User user = userRepository.getById(idFriend);
-                Friend friend = new Friend(idFriend, 0, user.getName(), user.getMoney(),
+                UsersMultiRating usersMultiRating = usersMultiRatingRepository.findDistinctByIdUser(idFriend);
+                Friend friend = new Friend(idFriend, user.getCurrentIcon(), user.getName(), user.getMoney(),
                         user.getEasyGames(), user.getEasyWinnings(), user.getMediumGames(), user.getMediumWinnings(),
-                        user.getHardGames(), user.getHardWinnings());
+                        user.getHardGames(), user.getHardWinnings(),
+                        usersMultiRating.getRank(), usersMultiRating.getCrystals(), usersMultiRating.getGames(), usersMultiRating.getWinnings());
                 friends.add(friend);
             }
         }

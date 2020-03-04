@@ -2,25 +2,12 @@ package harelchuk.maxim.throneserver.User;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Random;
 
 @Entity
 @Table(name = "users")
 public class User {
 
     public User() {
-    }
-
-    public User(int id, boolean credit, long money, int easyGames, int easyWins, int mediumGames, int mediumWins, int hardGames, int hardWins) {
-        this.id = id;
-        this.credit = credit;
-        this.money = money;
-        this.easyGames = easyGames;
-        this.easyWinnings = easyWins;
-        this.mediumGames = mediumGames;
-        this.mediumWinnings = mediumWins;
-        this.hardGames = hardGames;
-        this.hardWinnings = hardWins;
     }
 
     @Id
@@ -37,6 +24,9 @@ public class User {
 
     @Column(name = "uuid")
     private String uuidString;
+
+    @Column(name = "currentIcon")
+    private int currentIcon;
 
     @Column(name = "user_name")
     private String name;
@@ -71,18 +61,6 @@ public class User {
     @Column(name = "is_films")
     private boolean films;
 
-    @Column(name = "is_skin_targar")
-    private boolean skinTargar;
-
-    @Column(name = "is_skin_stark")
-    private boolean skinStark;
-
-    @Column(name = "is_skin_lann")
-    private boolean skinLann;
-
-    @Column(name = "is_skin_night")
-    private boolean skinNight;
-
     @Column(name = "current_theme")
     private int currentTheme;
 
@@ -104,7 +82,7 @@ public class User {
     @Column(name = "debit_sum")
     private long debitSum;
 
-    User(String uniqueNumber, byte[] uuid_bytes, String uuid) {
+    User(String uniqueNumber, byte[] uuid_bytes, String uuid, int currentTheme) {
 
         //id auto
 
@@ -114,9 +92,11 @@ public class User {
 
         this.uniqueNumber = uniqueNumber;
 
+        this.currentIcon = 0;
+
         this.name = "";
 
-        this.money = 10 + new Random().nextInt(20);
+        this.money = 10;
 
         this.easyGames = 0;
 
@@ -136,15 +116,7 @@ public class User {
 
         this.films = true;
 
-        this.skinTargar = true;
-
-        this.skinStark = false;
-
-        this.skinLann = false;
-
-        this.skinNight = false;
-
-        this.currentTheme = 0;
+        this.currentTheme = currentTheme;
 
         this.credit = false;
 
@@ -220,22 +192,6 @@ public class User {
 
     public boolean isFilms() {
         return films;
-    }
-
-    public boolean isSkinTargar() {
-        return skinTargar;
-    }
-
-    public boolean isSkinStark() {
-        return skinStark;
-    }
-
-    public boolean isSkinLann() {
-        return skinLann;
-    }
-
-    public boolean isSkinNight() {
-        return skinNight;
     }
 
     public int getCurrentTheme() {
@@ -327,33 +283,6 @@ public class User {
         this.films = films;
     }
 
-
-    void buy_skin_targar(long cost) {
-        this.skinTargar = true;
-        this.money -= cost;
-        this.currentTheme = 0;
-    }
-
-
-    void buy_skin_stark(long cost) {
-        this.skinStark = true;
-        this.money -= cost;
-        this.currentTheme = 1;
-    }
-
-
-    void buy_skin_lann(long cost) {
-        this.skinLann = true;
-        this.money -= cost;
-        this.currentTheme = 2;
-    }
-
-    void buy_skin_night(long cost) {
-        this.skinNight = true;
-        this.money -= cost;
-        this.currentTheme = 3;
-    }
-
     void setCurrentTheme(int currentTheme) {
         this.currentTheme = currentTheme;
     }
@@ -420,4 +349,11 @@ public class User {
         return debitSum;
     }
 
+    public int getCurrentIcon() {
+        return currentIcon;
+    }
+
+    public void setCurrentIcon(int currentIcon) {
+        this.currentIcon = currentIcon;
+    }
 }

@@ -2,7 +2,9 @@ package harelchuk.maxim.throneserver.FriendGames;
 
 import harelchuk.maxim.throneserver.MatchGameQuestions.MatchGameQuestions;
 import harelchuk.maxim.throneserver.MatchGameQuestions.MatchGameQuestionsRepository;
+import harelchuk.maxim.throneserver.Question.LocaledQuestion;
 import harelchuk.maxim.throneserver.Question.Question;
+import harelchuk.maxim.throneserver.Question.QuestionController;
 import harelchuk.maxim.throneserver.Question.QuestionRepository;
 import harelchuk.maxim.throneserver.User.User;
 import harelchuk.maxim.throneserver.User.UserRepository;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+
+import static harelchuk.maxim.throneserver.Question.QuestionController.switchLocale;
 
 @RestController
 @RequestMapping("/games/friend")
@@ -87,10 +91,11 @@ public class FriendGamesController {
         return suitable;
     }
 
-    @GetMapping("/enter/{uuid}/{id_game}")
+    @GetMapping("/enter/{uuid}/{id_game}/{is_russian}")
     public @ResponseBody
-    List<Question> enterFriendGame(@PathVariable String uuid,
-                                   @PathVariable int id_game) {
+    List<LocaledQuestion> enterFriendGame(@PathVariable String uuid,
+                                          @PathVariable int id_game,
+                                          @PathVariable boolean is_russian) {
         User user = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
         int myId = user.getId();
         FriendGames friendGame = friendGamesRepository.findFriendGamesById(id_game);
@@ -102,7 +107,7 @@ public class FriendGamesController {
             ids[i] = match.get(i).getIdQuestion();
         }
         userRepository.save(user);
-        return questionRepository.findByIdQuestionIn(ids);
+        return getLocaledQuestions(questionRepository.findAllByIdIn(ids), is_russian);
     }
 
     @GetMapping("/update/{uuid}/{id_game}/{number}")
@@ -192,10 +197,16 @@ public class FriendGamesController {
         FriendGames friendGame = friendGamesRepository.findFriendGamesById(id_game);
         if (friendGame.getIdUserTo() != myId && friendGame.getIdUserWho() != myId) return 0;
         long cost = friendGame.getCost();
-        user.addUser_money(cost);                   //RETURN MY BET
+
         if (myId == friendGame.getIdUserTo()) {
+            int myAnswers = friendGame.getNumberTo();
+            if (myAnswers != 0)
+                user.addUser_money(cost);           //RETURN MY BET IF I ANSWERED ANYTHING
             friendGame.setStatusTo(6);              //UPDATE MY STATUS IF IM TO
         } else {
+            int myAnswers = friendGame.getNumberWho();
+            if (myAnswers != 0)
+                user.addUser_money(cost);           //RETURN MY BET IF I ANSWERED ANYTHING
             friendGame.setStatusWho(6);             //UPDATE MY STATUS  IF IM WHO
         }
 
@@ -308,15 +319,14 @@ public class FriendGamesController {
     private int[] getSevenQuestionIds(ArrayList<Integer> selectedQuestionsID) {
         int[] ids = new int[7];
         Random rand = new Random();
-        for (int i = 0; i < 7; i++) {
-            int randomIndex;
-            randomIndex = rand.nextInt(selectedQuestionsID.size());
-            ids[i] = selectedQuestionsID.get(randomIndex);
-            if (selectedQuestionsID.size() > 1) {
-                selectedQuestionsID.remove(randomIndex);
-            }
-        }
+        QuestionController.getSevenQuestionIds(selectedQuestionsID, ids, rand);
         return ids;
+    }
+
+    private List<LocaledQuestion> getLocaledQuestions(List<Question> questions, boolean isRussian) {
+        ArrayList<LocaledQuestion> localedQuestions = new ArrayList<>();
+        switchLocale(questions, isRussian, localedQuestions);
+        return localedQuestions;
     }
 
 }

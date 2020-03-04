@@ -9,10 +9,12 @@ import java.util.ArrayList;
 public interface UserRepository extends JpaRepository<User, Integer> {
     User getByUuidBytes(byte[] uuid_bytes);
 
-    ArrayList<User> findUsersByCreditFalseAndEasyWinningsGreaterThanAndMediumWinningsGreaterThanAndHardWinningsGreaterThanAndMoneyGreaterThan
-            (int m, int n, int k, long l);
+/*    ArrayList<User> findUsersByCreditFalseAndEasyWinningsGreaterThanAndMediumWinningsGreaterThanAndHardWinningsGreaterThanAndMoneyGreaterThan
+            (int m, int n, int k, long l);*/
+
 
     User getById(int id);
 
     ArrayList<User> findAllByUniqueNumberAndIdNot(String unique, int id);
+
 }

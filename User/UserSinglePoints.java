@@ -5,7 +5,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "users_single_points")
 public class UserSinglePoints {
-
     public UserSinglePoints() {
     }
 
@@ -26,11 +25,15 @@ public class UserSinglePoints {
     @Column(name = "time_when_full")
     private long timeWhenFull;
 
+    @Column(name = "time_to_full")
+    private int timeToFullInSeconds;
+
     public UserSinglePoints(int userId) {
         this.userId = userId;
         this.maxPoints = 10;
         this.points = 10;
         this.timeWhenFull = 0;
+        this.timeToFullInSeconds = 0;
     }
 
     public Integer getId() {
@@ -63,5 +66,13 @@ public class UserSinglePoints {
 
     public void setMaxPoints(int maxPoints) {
         this.maxPoints = maxPoints;
+    }
+
+    public int getTimeToFullInSeconds() {
+        return timeToFullInSeconds;
+    }
+
+    public void setTimeToFullInSeconds(int timeToFullInSeconds) {
+        this.timeToFullInSeconds = timeToFullInSeconds;
     }
 }

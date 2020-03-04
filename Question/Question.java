@@ -3,36 +3,49 @@ package harelchuk.maxim.throneserver.Question;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "questions")
+//@Table(name = "questions")
+@Table(name = "new_questions")
 public class Question {
     @Id
-    @Column(name = "id_question")
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer idQuestion;
+    private Integer id;
 
-    @Column(name = "question_text")
-    private String questionText;
+    @Column(name = "question_ru")
+    private String questionRu;
 
-    @Column(name = "answer_one")
-    private String answerOne;
+    @Column(name = "question_en")
+    private String questionEn;
 
-    @Column(name = "answer_two")
-    private String answerTwo;
+    @Column(name = "answer_1_ru")
+    private String answer1Ru;
 
-    @Column(name = "answer_three")
-    private String answerThree;
+    @Column(name = "answer_1_en")
+    private String answer1En;
 
-    @Column(name = "answer_four")
-    private String answerFour;
+    @Column(name = "answer_2_ru")
+    private String answer2Ru;
 
-    @Column(name = "right_answer")
-    private int rightAnswer;
+    @Column(name = "answer_2_en")
+    private String answer2En;
+
+    @Column(name = "answer_3_ru")
+    private String answer3Ru;
+
+    @Column(name = "answer_3_en")
+    private String answer3En;
+
+    @Column(name = "answer_4_ru")
+    private String answer4Ru;
+
+    @Column(name = "answer_4_en")
+    private String answer4En;
+
+    @Column(name = "category")
+    private int category;
 
     @Column(name = "level")
     private int level;
-
-    @Column(name = "difficulty")
-    private int difficulty;
 
     @Column(name = "in_book")
     private boolean inBook;
@@ -40,55 +53,74 @@ public class Question {
     @Column(name = "in_serial")
     private boolean inSerial;
 
-    @Column(name = "category")
-    private int category;
+    @Column(name = "right_answer")
+    private int rightAnswer;
 
+    @Column(name = "difficulty")
+    private int difficulty;
 
-    public Integer getIdQuestion() {
-        return idQuestion;
+    public Integer getId() {
+        return id;
     }
 
-
-    public String getQuestionText() {
-        return questionText;
+    public String getQuestionRu() {
+        return questionRu;
     }
 
-
-    public String getAnswerOne() {
-        return answerOne;
+    public String getQuestionEn() {
+        return questionEn;
     }
 
-    public String getAnswerTwo() {
-        return answerTwo;
+    public String getAnswer1Ru() {
+        return answer1Ru;
     }
 
-    public String getAnswerThree() {
-        return answerThree;
+    public String getAnswer1En() {
+        return answer1En;
     }
 
-    public String getAnswerFour() {
-        return answerFour;
+    public String getAnswer2Ru() {
+        return answer2Ru;
     }
 
-    public int getRightAnswer() {
-        return rightAnswer;
+    public String getAnswer2En() {
+        return answer2En;
+    }
+
+    public String getAnswer3Ru() {
+        return answer3Ru;
+    }
+
+    public String getAnswer3En() {
+        return answer3En;
+    }
+
+    public String getAnswer4Ru() {
+        return answer4Ru;
+    }
+
+    public String getAnswer4En() {
+        return answer4En;
+    }
+
+    public int getCategory() {
+        return category;
     }
 
     public int getLevel() {
         return level;
     }
 
-    public boolean getInSerial() {
-        return inSerial;
-    }
-
-
-    public boolean getInBook() {
+    public boolean isInBook() {
         return inBook;
     }
 
-    public int getCategory() {
-        return category;
+    public boolean isInSerial() {
+        return inSerial;
+    }
+
+    public int getRightAnswer() {
+        return rightAnswer;
     }
 
     public int getDifficulty() {

@@ -1,68 +1,165 @@
 package harelchuk.maxim.throneserver.Leaderboard;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "leaderboard_new")
 public class LeaderboardUser {
 
-    private int icon;
-    private String name;
-    private long money;
-    private int easyGames;
-    private int easyWins;
-    private int mediumGames;
-    private int mediumWins;
-    private int hardGames;
-    private int hardWins;
+    public LeaderboardUser() {
+    }
 
-    public LeaderboardUser(int icon, String name, long money, int easyGames, int easyWinnings, int mediumGames, int mediumWinnings, int hardGames, int hardWinnings) {
-        this.icon = icon;
-        this.name = name;
-        this.money = money;
-        this.easyGames = easyGames;
-        this.easyWins = easyWinnings;
-        this.mediumGames = mediumGames;
-        this.mediumWins = mediumWinnings;
-        this.hardGames = hardGames;
-        this.hardWins = hardWinnings;
+    public Integer getId() {
+        return id;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public int getPlace() {
+        return place;
     }
 
     public int getIcon() {
         return icon;
     }
 
-    public long getMoney() {
-        return money;
+    public String getName() {
+        return name;
     }
 
-
-    public int getEasyGames() {
-        return easyGames;
+    public int getRank() {
+        return rank;
     }
 
-
-    public int getEasyWins() {
-        return easyWins;
+    public int getRating() {
+        return rating;
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    public Integer id;
 
-    public int getMediumGames() {
-        return mediumGames;
+    @Column(name = "user_id")
+    public int userId;
+
+
+    @Column(name = "place")
+    public int place;
+
+    @Column(name = "icon")
+    public int icon;
+
+    @Column(name = "name")
+    public String name;
+
+    @Column(name = "rank")
+    public int rank;
+
+    @Column(name = "rating")
+    public int rating;
+
+
+    public LeaderboardUser(int userId, int place, int icon, String name, int rank, int rating) {
+        this.userId = userId;
+        this.place = place;
+        this.icon = icon;
+        this.name = name;
+        this.rank = rank;
+        this.rating = rating;
     }
 
+    public void setPlace(int place) {
+        this.place = place;
+    }
+}
 
-    public int getMediumWins() {
-        return mediumWins;
+    /*
+    @Column(name = "unique_number")
+    public String uniqueNumber;
+
+    @Column(name = "money")
+    public int money;
+
+   @Column(name = "crystals")
+    public int crystals;
+
+    @Column(name = "easy_percent")
+    public int easyPercent;
+
+    @Column(name = "medium_percent")
+    public int mediumPercent;
+
+    @Column(name = "hard_percent")
+    public int hardPercent;
+
+    @Column(name = "rating_percent")
+    public int ratingPercent;*/
+
+
+/*
+    public LeaderboardUser(int userId, *//*String uniqueNumber, *//*int icon, String name,
+                           int rank, int money, int crystals, int easyPercent,
+                           int mediumPercent, int hardPercent, int ratingPercent) {
+        this.userId = userId;
+        //this.uniqueNumber = uniqueNumber;
+        this.icon = icon;
+        this.name = name;
+        this.rank = rank;
+        this.money = money;
+        this.crystals = crystals;
+        this.easyPercent = easyPercent;
+        this.mediumPercent = mediumPercent;
+        this.hardPercent = hardPercent;
+        this.ratingPercent = ratingPercent;
     }
 
-
-    public int getHardGames() {
-        return hardGames;
+    public Integer getId() {
+        return id;
     }
 
+    public int getUserId() {
+        return userId;
+    }
 
-    public int getHardWins() {
-        return hardWins;
+    public String getUniqueNumber() {
+        return uniqueNumber;
+    }
+
+    public int getIcon() {
+        return icon;
     }
 
     public String getName() {
         return name;
     }
-}
+
+    public int getRank() {
+        return rank;
+    }
+
+    public int getMoney() {
+        return money;
+    }
+
+    public int getCrystals() {
+        return crystals;
+    }
+
+    public int getEasyPercent() {
+        return easyPercent;
+    }
+
+    public int getMediumPercent() {
+        return mediumPercent;
+    }
+
+    public int getHardPercent() {
+        return hardPercent;
+    }
+
+    public int getRatingPercent() {
+        return ratingPercent;
+    }*/

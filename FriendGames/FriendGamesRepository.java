@@ -13,4 +13,6 @@ public interface FriendGamesRepository extends JpaRepository<FriendGames, Intege
     FriendGames findFriendGamesByCreateTimeAndIdUserWho(long time, int who);
 
     ArrayList<FriendGames> findAllByIdUserWhoOrIdUserTo(int myId, int myId2);
+
+    ArrayList<FriendGames> findAll();
 }

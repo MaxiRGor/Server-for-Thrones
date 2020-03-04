@@ -13,10 +13,10 @@ public class GameVariables {
     @Column(name = "single_difficulty_costs")
     private int singleDifficultyCosts;
 
-    @Column(name = "multy_rating_rewards")
-    private int multiRatingRewards;
+    @Column(name = "multi_rating_costs")
+    private int multiRatingCost;
 
-    @Column(name = "multy_rating_min")
+    @Column(name = "multi_rating_min")
     private int multiRatingMin;
 
     @Column(name = "single_difficulty_rewards")
@@ -28,6 +28,12 @@ public class GameVariables {
     @Column(name = "icons_costs")
     private int iconsCosts;
 
+    @Column(name = "energy_time_to_refill")
+    private int energyTimeToRefill;
+
+    @Column(name = "crystals_for_full")
+    private int crystalsForFullEnergy;
+
     public Integer getId() {
         return id;
     }
@@ -36,8 +42,8 @@ public class GameVariables {
         return singleDifficultyCosts;
     }
 
-    public int getMultiRatingRewards() {
-        return multiRatingRewards;
+    public int getMultiRatingCost() {
+        return multiRatingCost;
     }
 
     public int getMultiRatingMin() {
@@ -54,5 +60,13 @@ public class GameVariables {
 
     public int getIconsCosts() {
         return iconsCosts;
+    }
+
+    public int getEnergyTimeToRefill() {
+        return energyTimeToRefill;
+    }
+
+    public int getCrystalsForFullEnergy() {
+        return crystalsForFullEnergy;
     }
 }

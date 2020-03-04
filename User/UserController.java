@@ -1,5 +1,6 @@
 package harelchuk.maxim.throneserver.User;
 
+import harelchuk.maxim.throneserver.GameVariables.GameVariablesRepository;
 import harelchuk.maxim.throneserver.Leaderboard.LeaderboardRepository;
 import harelchuk.maxim.throneserver.Leaderboard.LeaderboardUser;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,46 +19,126 @@ public class UserController {
     private UserRepository userRepository;
     private LeaderboardRepository leaderboardRepository;
     private UserSinglePointsRepository userSinglePointsRepository;
+    private UsersMultiRatingRepository usersMultiRatingRepository;
+    private UserIconPurchasesRepository userIconPurchasesRepository;
+    private UserSkinPurchasesRepository userSkinPurchasesRepository;
+    private GameVariablesRepository gameVariablesRepository;
+    private UserEmailRepository userEmailRepository;
 
     @Autowired
     UserController(UserRepository userRepository,
                    LeaderboardRepository leaderboardRepository,
-                   UserSinglePointsRepository userSinglePointsRepository) {
+                   UserSinglePointsRepository userSinglePointsRepository,
+                   UsersMultiRatingRepository usersMultiRatingRepository,
+                   UserIconPurchasesRepository userIconPurchasesRepository,
+                   UserSkinPurchasesRepository userSkinPurchasesRepository,
+                   GameVariablesRepository gameVariablesRepository,
+                   UserEmailRepository userEmailRepository) {
         this.userRepository = userRepository;
         this.leaderboardRepository = leaderboardRepository;
         this.userSinglePointsRepository = userSinglePointsRepository;
+        this.usersMultiRatingRepository = usersMultiRatingRepository;
+        this.userIconPurchasesRepository = userIconPurchasesRepository;
+        this.userSkinPurchasesRepository = userSkinPurchasesRepository;
+        this.gameVariablesRepository = gameVariablesRepository;
+        this.userEmailRepository = userEmailRepository;
     }
+/*
 
     @GetMapping(path = "/all")
     public @ResponseBody
     Iterable<User> getUsers() {
         return userRepository.findAll();
     }
+*/
 
 
-    @GetMapping("/create")
+    @GetMapping("/create/{theme_number}")
     public @ResponseBody
-    User createUser() {
+    AllUserInfo createUser(@PathVariable int theme_number) {
         byte[] uuid_bytes = getBytesFromUUID(UUID.randomUUID());
         String uuid = getUUIDFromBytes(uuid_bytes).toString();
         String uniqueNumber = RandomStringUtils.random(4, true, true);
-        User user = new User(uniqueNumber, uuid_bytes, uuid);
+        User user = new User(uniqueNumber, uuid_bytes, uuid, theme_number);
         userRepository.save(user);
         int id = userRepository.getByUuidBytes(uuid_bytes).getId();
         UserSinglePoints userSinglePoints = new UserSinglePoints(id);
         userSinglePointsRepository.save(userSinglePoints);
-        User user1 = userRepository.getByUuidBytes(uuid_bytes);
-        user1.setName("PLAYER " + String.valueOf(id));
-        userRepository.save(user1);
+        UsersMultiRating usersMultiRating = new UsersMultiRating(id);
+        usersMultiRatingRepository.save(usersMultiRating);
+        UserIconsPurchases userIconsPurchases = new UserIconsPurchases(id);
+        userIconPurchasesRepository.save(userIconsPurchases);
+        UserSkinsPurchases userSkinsPurchases = new UserSkinsPurchases(id, theme_number);
+        userSkinPurchasesRepository.save(userSkinsPurchases);
         return getUserByUUID(uuid);
     }
 
 
     @GetMapping("/get/{uuid}")
     public @ResponseBody
-    User getUserByUUID(@PathVariable("uuid") String uuid) {
-        return userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
+    AllUserInfo getUserByUUID(@PathVariable("uuid") String uuid) {
+        User user = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
+        if (user == null) return createUser(0);
+        else {
+            int userId = user.getId();
+            UsersMultiRating multiRating = usersMultiRatingRepository.findDistinctByIdUser(userId);
+            UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(userId);
+            UserSkinsPurchases skinsPurchases = userSkinPurchasesRepository.findDistinctByUserId(userId);
+            UserIconsPurchases iconsPurchases = userIconPurchasesRepository.findDistinctByUserId(userId);
+            return new AllUserInfo(user, multiRating, singlePoints, skinsPurchases, iconsPurchases);
+        }
     }
+
+    @GetMapping("/find/{uuid}/email/{email}")
+    public @ResponseBody
+    int getEmailIdOrAddNewEmail(@PathVariable("uuid") String uuid, @PathVariable("email") String email) {
+        int id;
+        UserEmail userEmail = userEmailRepository.findDistinctByEmail(email);
+        if (userEmail == null) {
+            id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+            userEmail = new UserEmail(id, email);
+            userEmailRepository.save(userEmail);
+        } else {
+            id = userEmail.getUserId();
+        }
+        return id;
+    }
+
+    @GetMapping("/replace/{uuid}/email/{email}")
+    public @ResponseBody
+    AllUserInfo replaceUserByEmail(@PathVariable("uuid") String uuid, @PathVariable("email") String email) {
+        UserEmail userEmail = userEmailRepository.findDistinctByEmail(email);
+        int id = userEmail.getUserId();
+        User user = userRepository.getById(id);
+        UsersMultiRating multiRating = usersMultiRatingRepository.findDistinctByIdUser(id);
+        UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(id);
+        UserSkinsPurchases skinsPurchases = userSkinPurchasesRepository.findDistinctByUserId(id);
+        UserIconsPurchases iconsPurchases = userIconPurchasesRepository.findDistinctByUserId(id);
+        return new AllUserInfo(user, multiRating, singlePoints, skinsPurchases, iconsPurchases);
+    }
+
+
+    /*@GetMapping("/insert/{uuid}/email/{email}")
+    public @ResponseBody
+    AllUserInfo getUserByEmail(@PathVariable("uuid") String uuid, @PathVariable("email") String email) {
+        int id;
+        UserEmail userEmail = userEmailRepository.findDistinctByEmail(email);
+        if (userEmail == null) {
+            id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+            userEmail = new UserEmail(id,email);
+            userEmailRepository.save(userEmail);
+        } else{
+            id = userEmail.getUserId();
+        }
+
+        User user = userRepository.getById(id);
+        UsersMultiRating multiRating = usersMultiRatingRepository.findDistinctByIdUser(id);
+        UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(id);
+        UserSkinsPurchases skinsPurchases = userSkinPurchasesRepository.findDistinctByUserId(id);
+        UserIconsPurchases iconsPurchases = userIconPurchasesRepository.findDistinctByUserId(id);
+        return new AllUserInfo(user, multiRating, singlePoints, skinsPurchases, iconsPurchases);
+    }*/
+
 
     @GetMapping("/get/money/{uuid}")
     public @ResponseBody
@@ -68,44 +148,122 @@ public class UserController {
 
     @GetMapping("/get/points/{uuid}")
     public @ResponseBody
-    UserSinglePoints getUserPoints(@PathVariable("uuid") String uuid) {
+    UserSinglePoints getPoints(@PathVariable("uuid") String uuid) {
         int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
-        UserSinglePoints updating = userSinglePointsRepository.getUserSinglePointsByUserId(id);
+        UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(id);
         int points;
         long currentTime = new Date().getTime();
-        if (updating.getTimeWhenFull() == 0) {  //previously checked after long time
-            points = updating.getMaxPoints();
-            System.out.println(1);
+        int oneLap = gameVariablesRepository.findDistinctById(1).getEnergyTimeToRefill();
+        if (singlePoints.getTimeWhenFull() == 0) {  //previously checked after long time
+            points = singlePoints.getMaxPoints();
+            singlePoints.setTimeToFullInSeconds(0);
         } else {
-            if (updating.getTimeWhenFull() < currentTime) {     //now checking after long time
-                points = updating.getMaxPoints();
-                updating.setTimeWhenFull(0);
-                System.out.println(2);
+            if (singlePoints.getTimeWhenFull() < currentTime) {     //now checking after long time
+                points = singlePoints.getMaxPoints();
+                singlePoints.setTimeWhenFull(0);
+                singlePoints.setTimeToFullInSeconds(0);
             } else {
-                points = (int) (updating.getMaxPoints() - 1 - (updating.getTimeWhenFull() - currentTime) / 150000);     //already played
-                System.out.println(3);
+                points = (int) (singlePoints.getMaxPoints() - 1 - (singlePoints.getTimeWhenFull() - currentTime) / oneLap);     //already played
+                singlePoints.setTimeToFullInSeconds((int) (singlePoints.getTimeWhenFull() - currentTime) / 1000);
             }
         }
-        updating.setPoints(points);
-        userSinglePointsRepository.save(updating);
-        return updating;
+        singlePoints.setPoints(points);
+        userSinglePointsRepository.save(singlePoints);
+        return singlePoints;
     }
 
+
+    @GetMapping("/update/{uuid}/refill_points/{is_crystal}")
+    public @ResponseBody
+    Boolean refillPoints(@PathVariable("uuid") String uuid, @PathVariable("is_crystal") boolean is_crystal) {
+        int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(id);
+
+        if (is_crystal) {
+            UsersMultiRating rating = usersMultiRatingRepository.findDistinctByIdUser(id);
+            rating.subtractCrystals(gameVariablesRepository
+                    .findDistinctById(1).getCrystalsForFullEnergy());
+            System.out.println(gameVariablesRepository
+                    .findDistinctById(1).getCrystalsForFullEnergy());
+            usersMultiRatingRepository.save(rating);
+            singlePoints.setPoints(singlePoints.getMaxPoints());
+            singlePoints.setTimeWhenFull(0);
+        } else {
+            int oneLap = gameVariablesRepository.findDistinctById(1).getEnergyTimeToRefill();
+            singlePoints.setPoints(singlePoints.getPoints() + 1);
+            singlePoints.setTimeWhenFull(singlePoints.getTimeWhenFull() - oneLap);
+        }
+        userSinglePointsRepository.save(singlePoints);
+        return true;
+    }
+
+    @GetMapping("/get/multi_rating/{uuid}")
+    public @ResponseBody
+    UsersMultiRating getRating(@PathVariable("uuid") String uuid) {
+        int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        return usersMultiRatingRepository.findDistinctByIdUser(id);
+    }
+
+    @GetMapping("/get/icons/{uuid}")
+    public @ResponseBody
+    UserIconsPurchases getIconsPurchases(@PathVariable("uuid") String uuid) {
+        int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        return userIconPurchasesRepository.findDistinctByUserId(id);
+    }
+
+    @GetMapping("/purchase/{uuid}/icon/{number}/{cost_number_from_zero}")
+    public @ResponseBody
+    Boolean purchaseIcon(@PathVariable("uuid") String uuid,
+                         @PathVariable("number") int number,
+                         @PathVariable("cost_number_from_zero") int cost_number) {
+        User user = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
+        user.setCurrentIcon(number);
+        userRepository.save(user);
+        int userId = user.getId();
+        int iconCost = gameVariablesRepository.findAllByIconsCostsNot(0).get(cost_number).getIconsCosts();
+        UsersMultiRating multiRating = usersMultiRatingRepository.findDistinctByIdUser(userId);
+        multiRating.subtractCrystals(iconCost);
+        usersMultiRatingRepository.save(multiRating);
+        UserIconsPurchases purchase = userIconPurchasesRepository.findDistinctByUserId(userId);
+        purchase.setIconPurchased(number);
+        userIconPurchasesRepository.save(purchase);
+        return true;
+    }
+
+    @GetMapping("/get/skins/{uuid}")
+    public @ResponseBody
+    UserSkinsPurchases getSkinsPurchases(@PathVariable("uuid") String uuid) {
+        int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        return userSkinPurchasesRepository.findDistinctByUserId(id);
+    }
+
+    @GetMapping("/purchase/{uuid}/skin/{number}")
+    public @ResponseBody
+    Boolean purchaseSkin(@PathVariable("uuid") String uuid,
+                         @PathVariable("number") int number) {
+        User user = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
+        int userId = user.getId();
+        int skinCost = gameVariablesRepository.findAllByIconsCostsNot(0).get(number).getThemeCosts();
+        user.subtractUser_money(skinCost);
+        user.setCurrentTheme(number);
+        userRepository.save(user);
+        UserSkinsPurchases purchase = userSkinPurchasesRepository.findDistinctByUserId(userId);
+        purchase.setSkinPurchased(number);
+        userSkinPurchasesRepository.save(purchase);
+        return true;
+    }
 
     @GetMapping("/get/leaderboard")
     public @ResponseBody
     ArrayList<LeaderboardUser> getLeaders() {
-        List<Integer> leadersIds = leaderboardRepository.selectAllId();
-        ArrayList<LeaderboardUser> leaders = new ArrayList<>();
-        for (Integer leadersId : leadersIds) {
-            User user = userRepository.getById(leadersId);
-            //  icon = ?
-            LeaderboardUser leaderboardUser = new LeaderboardUser(0, user.getName(), user.getMoney(),
-                    user.getEasyGames(), user.getEasyWinnings(), user.getMediumGames(), user.getMediumWinnings(),
-                    user.getHardGames(), user.getHardWinnings());
-            leaders.add(leaderboardUser);
-        }
-        return leaders;
+        return leaderboardRepository.findOneHundred();
+    }
+
+    @GetMapping("/get/leaderboard/place/{uuid}")
+    public @ResponseBody
+    LeaderboardUser getUserPlace(@PathVariable String uuid) {
+        int userId = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        return leaderboardRepository.findDistinctByUserId(userId);
     }
 
     @PutMapping("/update/{uuid}/user_name/{user_name}")
@@ -124,21 +282,31 @@ public class UserController {
         userRepository.save(updating);
     }
 
+    @GetMapping("/update/{uuid}/subtract_crystal")
+    public boolean subtractCrystal(@PathVariable String uuid) {
+        int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
+        UsersMultiRating rating = usersMultiRatingRepository.findDistinctByIdUser(id);
+        rating.subtractCrystals(1);
+        usersMultiRatingRepository.save(rating);
+        return true;
+    }
+
     @GetMapping("/update/{uuid}/subtract_points/{points}")
     public boolean subtractUserPoints(@PathVariable String uuid,
                                       @PathVariable int points) {
         int id = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid))).getId();
-        UserSinglePoints updating = userSinglePointsRepository.getUserSinglePointsByUserId(id);
+        UserSinglePoints singlePoints = userSinglePointsRepository.getUserSinglePointsByUserId(id);
         long timeWhenFull;
-        if (updating.getTimeWhenFull() == 0) {
+        int oneLap = gameVariablesRepository.findDistinctById(1).getEnergyTimeToRefill();
+        if (singlePoints.getTimeWhenFull() == 0) {
             long currentTime = new Date().getTime();
-            timeWhenFull = currentTime + points * 150000;
+            timeWhenFull = currentTime + points * oneLap;
         } else {
-            timeWhenFull = updating.getTimeWhenFull() + points * 150000;
+            timeWhenFull = singlePoints.getTimeWhenFull() + points * oneLap;
         }
-        updating.setPoints(updating.getPoints() - points);
-        updating.setTimeWhenFull(timeWhenFull);
-        userSinglePointsRepository.save(updating);
+        singlePoints.setPoints(singlePoints.getPoints() - points);
+        singlePoints.setTimeWhenFull(timeWhenFull);
+        userSinglePointsRepository.save(singlePoints);
         return true;
     }
 
@@ -229,53 +397,25 @@ public class UserController {
         userRepository.save(updating);
     }
 
-
-    @PutMapping("/update/{uuid}/buy_skin_targar/{cost}")
-    public void buy_skin_targar(@PathVariable String uuid,
-                                @PathVariable long cost) {
+    @PutMapping("/update/{uuid}/currentTheme/{current_theme_number}")
+    public void setCurrentTheme(@PathVariable String uuid,
+                                @PathVariable int current_theme_number) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
-        updating.buy_skin_targar(cost);
+        updating.setCurrentTheme(current_theme_number);
         userRepository.save(updating);
     }
 
-
-    @PutMapping("/update/{uuid}/buy_skin_stark/{cost}")
-    public void buy_skin_stark(@PathVariable String uuid,
-                               @PathVariable long cost) {
+    @GetMapping("/update/{uuid}/currentIcon/{current_icon_number}")
+    public boolean setCurrentIcon(@PathVariable String uuid,
+                                  @PathVariable int current_icon_number) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
-        updating.buy_skin_stark(cost);
+        updating.setCurrentIcon(current_icon_number);
         userRepository.save(updating);
+        return true;
     }
 
 
-    @PutMapping("/update/{uuid}/buy_skin_lann/{cost}")
-    public void buy_skin_lann(@PathVariable String uuid,
-                              @PathVariable long cost) {
-        User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
-        updating.buy_skin_lann(cost);
-        userRepository.save(updating);
-    }
-
-
-    @PutMapping("/update/{uuid}/buy_skin_night/{cost}")
-    public void buy_skin_night(@PathVariable String uuid,
-                               @PathVariable long cost) {
-        User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
-        updating.buy_skin_night(cost);
-        userRepository.save(updating);
-    }
-
-
-    @PutMapping("/update/{uuid}/current_theme/{current_theme}")
-    public void setCurrent_theme(@PathVariable String uuid,
-                                 @PathVariable int current_theme) {
-        User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
-        updating.setCurrentTheme(current_theme);
-        userRepository.save(updating);
-    }
-
-
-    @PutMapping("/update/{uuid}/get_credit/{get}")
+    @PutMapping("/update/{uuid}/getCredit/{get}")
     public void get_credit(@PathVariable String uuid,
                            @PathVariable long get) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
@@ -284,7 +424,7 @@ public class UserController {
     }
 
 
-    @PutMapping("/update/{uuid}/return_credit")
+    @PutMapping("/update/{uuid}/returnCredit")
     public void return_credit(@PathVariable String uuid) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
         updating.returnCredit();
@@ -292,7 +432,7 @@ public class UserController {
     }
 
 
-    @PutMapping("/update/{uuid}/add_debit/{add}")
+    @PutMapping("/update/{uuid}/addDeposit/{add}")
     public void add_debit(@PathVariable String uuid,
                           @PathVariable long add) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
@@ -301,7 +441,7 @@ public class UserController {
     }
 
 
-    @PutMapping("/update/{uuid}/return_debit")
+    @PutMapping("/update/{uuid}/returnDeposit")
     public void return_debit(@PathVariable String uuid) {
         User updating = userRepository.getByUuidBytes(getBytesFromUUID(UUID.fromString(uuid)));
         updating.returnDebit();
